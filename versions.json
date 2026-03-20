@@ -1,0 +1,4 @@
+{
+  "python_versions": ["3.13", "3.14"],
+  "texlive_versions": ["2025"]
+}

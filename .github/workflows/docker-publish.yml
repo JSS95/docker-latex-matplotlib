@@ -8,13 +8,42 @@ on:
 
 jobs:
 
+  validate-readme-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate README supported versions
+        run: |
+          python3 .github/scripts/validate_readme_versions.py versions.json README.md
+
+  resolve-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      python_versions: ${{ steps.versions.outputs.python_versions }}
+      texlive_versions: ${{ steps.versions.outputs.texlive_versions }}
+      latest_python_version: ${{ steps.versions.outputs.latest_python_version }}
+      latest_texlive_version: ${{ steps.versions.outputs.latest_texlive_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version matrix
+        id: versions
+        run: |
+          python3 .github/scripts/resolve_versions.py versions.json
+
   build-and-push:
+    needs:
+      - validate-readme-versions
+      - resolve-matrix
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python_version: ["3.13", "3.14"]
-        texlive_version: ["2025"]
+        python_version: ${{ fromJSON(needs.resolve-matrix.outputs.python_versions) }}
+        texlive_version: ${{ fromJSON(needs.resolve-matrix.outputs.texlive_versions) }}
         ffmpeg: [true, false]
         inkscape: [true, false]
     steps:
@@ -36,8 +65,8 @@ jobs:
 
           FULL="jeesoo9595/latex-matplotlib:${TAG}"
 
-          if [ "${{ matrix.python_version }}" = "3.14" ] && \
-             [ "${{ matrix.texlive_version }}" = "2025" ] && \
+          if [ "${{ matrix.python_version }}" = "${{ needs.resolve-matrix.outputs.latest_python_version }}" ] && \
+             [ "${{ matrix.texlive_version }}" = "${{ needs.resolve-matrix.outputs.latest_texlive_version }}" ] && \
              [ "${{ matrix.ffmpeg }}" = "true" ] && \
              [ "${{ matrix.inkscape }}" = "true" ]; then
             FULL="${FULL},jeesoo9595/latex-matplotlib:latest"
