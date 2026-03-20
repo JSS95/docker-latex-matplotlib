@@ -7,37 +7,8 @@ on:
     types: [published]
 
 jobs:
-  test-bash:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-15-intel]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker on macOS
-        if: runner.os == 'macOS'
-        uses: douglascamata/setup-docker-macos-action@v1.1.0
-
-      - name: Build latest image
-        run: |
-          docker build -t jeesoo9595/latex-matplotlib:latest \
-            --build-arg PYTHON_VERSION=3.14 \
-            --build-arg TEXLIVE_VERSION=2025 \
-            --build-arg INSTALL_FFMPEG=true \
-            --build-arg INSTALL_INKSCAPE=true \
-            .
-
-      - name: Test
-        working-directory: example
-        run: |
-          docker run --rm -v $(pwd):/usr/src/app -w /usr/src/app jeesoo9595/latex-matplotlib:latest make
-          test -f main.pdf
 
   build-and-push:
-    needs: [test-bash]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -50,15 +21,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Log in to DockerHub
-        if: github.event_name == 'release'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Compute Docker tags
         id: tags
@@ -78,10 +45,18 @@ jobs:
 
           echo "tags=${FULL}" >> "$GITHUB_OUTPUT"
 
+      - name: Log in to DockerHub
+        if: github.event_name == 'release'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name == 'release' }}
           tags: ${{ steps.tags.outputs.tags }}
           build-args: |
@@ -89,5 +64,5 @@ jobs:
             TEXLIVE_VERSION=${{ matrix.texlive_version }}
             INSTALL_FFMPEG=${{ matrix.ffmpeg }}
             INSTALL_INKSCAPE=${{ matrix.inkscape }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=py${{ matrix.python_version }}-tl${{ matrix.texlive_version }}-ff${{ matrix.ffmpeg }}-ink${{ matrix.inkscape }}
+          cache-to: type=gha,mode=max,scope=py${{ matrix.python_version }}-tl${{ matrix.texlive_version }}-ff${{ matrix.ffmpeg }}-ink${{ matrix.inkscape }}

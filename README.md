@@ -20,6 +20,17 @@ For example, `3.13_2025-ffmpeg-inkscape` contains Python 3.13, LaTeX 2025, ffmpe
 
 `latest` tag includes latest Python and LaTeX, including both ffmpeg and inkscape.
 
+## Supported platforms
+
+Each image is built for the following platforms:
+
+| Platform | Host examples |
+|---|---|
+| `linux/amd64` | Linux (x86_64), Windows (Docker Desktop / WSL2), Intel Mac |
+| `linux/arm64` | Apple Silicon Mac (Docker Desktop), AWS Graviton, Azure Arm VMs |
+
+Docker automatically pulls the correct image for your architecture.
+
 ## Build arguments
 
 The Dockerfile accepts the following build arguments:
