@@ -39,7 +39,7 @@ RUN if [ "$TEXLIVE_VERSION" != "latest" ]; then \
         pgf \
         # Font
         helvetic \
-        sfmath
+        sansmath
 
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --break-system-packages matplotlib && \
     python3 -c "import matplotlib.font_manager"
