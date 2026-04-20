@@ -82,16 +82,50 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name == 'release' }}
-          tags: ${{ steps.tags.outputs.tags }}
-          build-args: |
-            PYTHON_VERSION=${{ matrix.python_version }}
-            TEXLIVE_VERSION=${{ matrix.texlive_version }}
-            INSTALL_FFMPEG=${{ matrix.ffmpeg }}
-            INSTALL_INKSCAPE=${{ matrix.inkscape }}
-          cache-from: type=gha,scope=py${{ matrix.python_version }}-tl${{ matrix.texlive_version }}-ff${{ matrix.ffmpeg }}-ink${{ matrix.inkscape }}
-          cache-to: type=gha,mode=max,scope=py${{ matrix.python_version }}-tl${{ matrix.texlive_version }}-ff${{ matrix.ffmpeg }}-ink${{ matrix.inkscape }}
+        run: |
+          MIRRORS=(
+            "https://ftp.math.utah.edu/pub/tex/historic/"
+            "https://texlive.info/historic/"
+            "https://ftp.tu-chemnitz.de/pub/tug/historic/"
+            "https://pi.kwarc.info/historic/"
+            "https://mirrors.tuna.tsinghua.edu.cn/tex-historic-archive/"
+            "https://mirror.nju.edu.cn/tex-historic/"
+          )
+
+          IFS=',' read -ra TAG_ARRAY <<< "${{ steps.tags.outputs.tags }}"
+          TAG_ARGS=()
+          for T in "${TAG_ARRAY[@]}"; do
+            TAG_ARGS+=("-t" "$T")
+          done
+
+          PUSH_FLAG=""
+          if [ "${{ github.event_name }}" = "release" ]; then
+            PUSH_FLAG="--push"
+          fi
+
+          CACHE_SCOPE="py${{ matrix.python_version }}-tl${{ matrix.texlive_version }}-ff${{ matrix.ffmpeg }}-ink${{ matrix.inkscape }}"
+
+          for MIRROR in "${MIRRORS[@]}"; do
+            echo "::group::Trying mirror: $MIRROR"
+            if docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              $PUSH_FLAG \
+              "${TAG_ARGS[@]}" \
+              --build-arg "PYTHON_VERSION=${{ matrix.python_version }}" \
+              --build-arg "TEXLIVE_VERSION=${{ matrix.texlive_version }}" \
+              --build-arg "INSTALL_FFMPEG=${{ matrix.ffmpeg }}" \
+              --build-arg "INSTALL_INKSCAPE=${{ matrix.inkscape }}" \
+              --build-arg "TEX_ARCHIVE=$MIRROR" \
+              --cache-from "type=gha,scope=${CACHE_SCOPE}" \
+              --cache-to "type=gha,mode=max,scope=${CACHE_SCOPE}" \
+              .; then
+              echo "::endgroup::"
+              echo "Build succeeded with mirror: $MIRROR"
+              exit 0
+            fi
+            echo "::endgroup::"
+            echo "::warning::Build failed with mirror: $MIRROR"
+          done
+
+          echo "::error::All TeX Live mirrors failed!"
+          exit 1
