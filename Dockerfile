@@ -4,6 +4,7 @@ FROM python:${PYTHON_VERSION}
 ARG TEXLIVE_VERSION=latest
 ARG INSTALL_FFMPEG=false
 ARG INSTALL_INKSCAPE=false
+ARG TEX_ARCHIVE="https://ftp.math.utah.edu/pub/tex/historic/"
 
 # Install TeXLive
 RUN cd /tmp && \
@@ -11,8 +12,8 @@ RUN cd /tmp && \
         TLURL="https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"; \
         TLREPO="https://mirror.ctan.org/systems/texlive/tlnet"; \
     else \
-        TLURL="https://ftp.math.utah.edu/pub/tex/historic/systems/texlive/${TEXLIVE_VERSION}/install-tl-unx.tar.gz"; \
-        TLREPO="https://ftp.math.utah.edu/pub/tex/historic/systems/texlive/${TEXLIVE_VERSION}/tlnet-final"; \
+        TLURL="${TEX_ARCHIVE}/systems/texlive/${TEXLIVE_VERSION}/install-tl-unx.tar.gz"; \
+        TLREPO="${TEX_ARCHIVE}/systems/texlive/${TEXLIVE_VERSION}/tlnet-final"; \
     fi && \
     wget --no-check-certificate "$TLURL" && \
     zcat < install-tl-unx.tar.gz | tar xf - && \
@@ -23,7 +24,7 @@ ENV PATH="/usr/local/texlive/bin:${PATH}"
 
 # Setup TeXLive
 RUN if [ "$TEXLIVE_VERSION" != "latest" ]; then \
-        tlmgr option repository "https://ftp.math.utah.edu/pub/tex/historic/systems/texlive/${TEXLIVE_VERSION}/tlnet-final"; \
+        tlmgr option repository "${TEX_ARCHIVE}/systems/texlive/${TEXLIVE_VERSION}/tlnet-final"; \
     fi && \
     tlmgr update --self && \
     tlmgr install \

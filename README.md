@@ -53,6 +53,7 @@ The Dockerfile accepts the following build arguments:
 | `TEXLIVE_VERSION` | `latest` | TeXLive release year (e.g., `2024`, `2025`) |
 | `INSTALL_FFMPEG` | `false` | Set to `true` to install ffmpeg |
 | `INSTALL_INKSCAPE` | `false` | Set to `true` to install inkscape |
+| `TEX_ARCHIVE` | `https://ftp.math.utah.edu/pub/tex/historic/` | TeX archive URL (see https://www.tug.org/historic/) |
 
 Build examples:
 
