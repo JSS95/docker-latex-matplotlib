@@ -32,7 +32,7 @@ For example, `3.13_2025-ffmpeg-inkscape` contains Python 3.13, TeXLive 2025, ffm
 | Python | `3.13`, `3.14` |
 | TeXLive | `2025` |
 
-Only archived version of TeXLive is supported.
+Only archived versions of TeXLive are supported.
 
 ## Supported platforms
 
