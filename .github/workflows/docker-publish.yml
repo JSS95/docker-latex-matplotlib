@@ -74,14 +74,41 @@ jobs:
 
           echo "tags=${FULL}" >> "$GITHUB_OUTPUT"
 
+      - name: Check if tag already exists on DockerHub
+        id: check
+        run: |
+          PRIMARY_TAG=$(echo "${{ steps.tags.outputs.tags }}" | cut -d',' -f1)
+          TAG_NAME="${PRIMARY_TAG#jeesoo9595/latex-matplotlib:}"
+
+          IS_LATEST="false"
+          if echo "${{ steps.tags.outputs.tags }}" | grep -q "latest"; then
+            IS_LATEST="true"
+          fi
+
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://hub.docker.com/v2/repositories/jeesoo9595/latex-matplotlib/tags/${TAG_NAME}")
+
+          if [ "$STATUS" = "200" ] && [ "$IS_LATEST" = "false" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Tag ${TAG_NAME} already exists on DockerHub — skipping build."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            if [ "$IS_LATEST" = "true" ]; then
+              echo "Latest tag combo — always rebuilding."
+            else
+              echo "Tag ${TAG_NAME} does not exist — proceeding with build."
+            fi
+          fi
+
       - name: Log in to DockerHub
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' && steps.check.outputs.skip != 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push
+        if: steps.check.outputs.skip != 'true'
         run: |
           MIRRORS=(
             "https://ftp.math.utah.edu/pub/tex/historic/"
