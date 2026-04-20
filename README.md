@@ -49,8 +49,8 @@ The Dockerfile accepts the following build arguments:
 
 | Argument | Default | Description |
 |---|---|---|
-| `PYTHON_VERSION` | `3.14` | Python image tag (e.g., `3.13`, `3.14`) |
-| `TEXLIVE_VERSION` | `2026` | TeXLive release year (e.g., `2024`, `2025`) |
+| `PYTHON_VERSION` | No default | Python image tag (e.g., `3.13`, `3.14`) |
+| `TEXLIVE_VERSION` | No default | TeXLive release year (e.g., `2024`, `2025`) |
 | `INSTALL_FFMPEG` | `false` | Set to `true` to install ffmpeg |
 | `INSTALL_INKSCAPE` | `false` | Set to `true` to install inkscape |
 | `TEX_ARCHIVE` | `https://ftp.math.utah.edu/pub/tex/historic/` | TeX archive URL (see https://www.tug.org/historic/) |
@@ -58,9 +58,6 @@ The Dockerfile accepts the following build arguments:
 Build examples:
 
 ```bash
-# Default (latest Python, latest TeXLive, no ffmpeg/inkscape)
-docker build .
-
 # Python 3.13, TeXLive 2025, with ffmpeg and inkscape
 docker build \
     --build-arg PYTHON_VERSION=3.13 \
