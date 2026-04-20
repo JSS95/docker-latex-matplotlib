@@ -23,7 +23,7 @@ Images are tagged by the following rule:
 
 For example, `3.13_2025-ffmpeg-inkscape` contains Python 3.13, TeXLive 2025, ffmpeg, and inkscape. `3.14_2025` contains Python 3.14 and TeXLive 2025, but no ffmpeg and inkscape.
 
-`latest` tag includes latest Python and TeXLive, including both ffmpeg and inkscape.
+`latest` tag in Docker Hub includes the latest Python and TeXLive, including both ffmpeg and inkscape.
 
 ### Supported versions
 
@@ -49,8 +49,8 @@ The Dockerfile accepts the following build arguments:
 
 | Argument | Default | Description |
 |---|---|---|
-| `PYTHON_VERSION` | `latest` | Python image tag (e.g., `3.13`, `3.14`) |
-| `TEXLIVE_VERSION` | `latest` | TeXLive release year (e.g., `2024`, `2025`) |
+| `PYTHON_VERSION` | `3.14` | Python image tag (e.g., `3.13`, `3.14`) |
+| `TEXLIVE_VERSION` | `2026` | TeXLive release year (e.g., `2024`, `2025`) |
 | `INSTALL_FFMPEG` | `false` | Set to `true` to install ffmpeg |
 | `INSTALL_INKSCAPE` | `false` | Set to `true` to install inkscape |
 | `TEX_ARCHIVE` | `https://ftp.math.utah.edu/pub/tex/historic/` | TeX archive URL (see https://www.tug.org/historic/) |

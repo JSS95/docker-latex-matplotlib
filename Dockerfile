@@ -1,20 +1,16 @@
-ARG PYTHON_VERSION=latest
+ARG PYTHON_VERSION=3.14
 FROM python:${PYTHON_VERSION}
 
-ARG TEXLIVE_VERSION=latest
+ARG TEXLIVE_VERSION=2026
 ARG INSTALL_FFMPEG=false
 ARG INSTALL_INKSCAPE=false
 ARG TEX_ARCHIVE="https://ftp.math.utah.edu/pub/tex/historic/"
 
+ENV TLURL="${TEX_ARCHIVE}/systems/texlive/${TEXLIVE_VERSION}/install-tl-unx.tar.gz"
+ENV TLREPO="${TEX_ARCHIVE}/systems/texlive/${TEXLIVE_VERSION}/tlnet-final"
+
 # Install TeXLive
 RUN cd /tmp && \
-    if [ "$TEXLIVE_VERSION" = "latest" ]; then \
-        TLURL="https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"; \
-        TLREPO="https://mirror.ctan.org/systems/texlive/tlnet"; \
-    else \
-        TLURL="${TEX_ARCHIVE}/systems/texlive/${TEXLIVE_VERSION}/install-tl-unx.tar.gz"; \
-        TLREPO="${TEX_ARCHIVE}/systems/texlive/${TEXLIVE_VERSION}/tlnet-final"; \
-    fi && \
     wget --no-check-certificate "$TLURL" && \
     zcat < install-tl-unx.tar.gz | tar xf - && \
     cd $(ls | grep install-tl-[0-9]*) && \
@@ -23,9 +19,7 @@ RUN cd /tmp && \
 ENV PATH="/usr/local/texlive/bin:${PATH}"
 
 # Setup TeXLive
-RUN if [ "$TEXLIVE_VERSION" != "latest" ]; then \
-        tlmgr option repository "${TEX_ARCHIVE}/systems/texlive/${TEXLIVE_VERSION}/tlnet-final"; \
-    fi && \
+RUN tlmgr option repository "$TLREPO" && \
     tlmgr update --self && \
     tlmgr install \
         # Matplotlib requirements
